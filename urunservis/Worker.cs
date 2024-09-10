@@ -10,7 +10,7 @@ namespace urunservis
     {
         private readonly ILogger<Worker> _logger;
         private readonly HttpClient _httpClient;
-        private readonly string _connectionString = "Server=localhost;Database=rafetiket;Uid=root;Pwd=1234;";  // þema rafetiket aþþaðýdaki sql komutunda update komutunu kullandýðýmýz tablo ise etiket olarak belirtilmiþtir.
+        private readonly string _connectionString = "Server=localhost;Database=rafetiket;Uid=root;Pwd=1234;";  // ÅŸema rafetiket aÅŸÅŸaÄŸÄ±daki sql komutunda update komutunu kullandÄ±ÄŸÄ±mÄ±z tablo ise etiket olarak belirtilmiÅŸtir.
         private string _token;
 
         public Worker(ILogger<Worker> logger, HttpClient httpClient)
@@ -27,10 +27,10 @@ namespace urunservis
 
                 try
                 {
-                    // Giriþ yapýp token al
+                    // GiriÅŸ yapÄ±p token al
                     await LoginAsync();
 
-                    // API'den veri çek ve iþle
+                    // API'den veri Ã§ek ve iÅŸle
                     await FetchAndProcessProductsAsync(stoppingToken);
                 }
                 catch (Exception ex)
@@ -56,7 +56,7 @@ namespace urunservis
 
             var content = await response.Content.ReadAsStringAsync(stoppingToken);
 
-            _logger.LogInformation($"Ham JSON içeriði: {content}");
+            _logger.LogInformation($"Ham JSON iÃ§eriÄŸi: {content}");
 
             try
             {
@@ -66,20 +66,20 @@ namespace urunservis
                 {
                     foreach (var product in products)
                     {
-                        _logger.LogInformation($"Ürün barkodu: {product.UrunBarkod}, isim: {product.UrunIsim}, fiyat: {product.UrunFiyat}");
+                        _logger.LogInformation($"ÃœrÃ¼n barkodu: {product.UrunBarkod}, isim: {product.UrunIsim}, fiyat: {product.UrunFiyat}, indirimli fiyat: {product.UrunIndirim} ");
 
-                        // MySQL veritabanýnda güncelleme yap
+                        // MySQL veritabanÄ±nda gÃ¼ncelleme yap
                         await UpdateProductInDatabaseAsync(product);
                     }
                 }
                 else
                 {
-                    _logger.LogWarning("Ürün bulunamadý.");
+                    _logger.LogWarning("ÃœrÃ¼n bulunamadÄ±.");
                 }
             }
             catch (JsonException jsonEx)
             {
-                _logger.LogError($"JSON deserialization baþarýsýz: {jsonEx.Message}");
+                _logger.LogError($"JSON deserialization baÅŸarÄ±sÄ±z: {jsonEx.Message}");
             }
         }
 
@@ -89,24 +89,25 @@ namespace urunservis
             await connection.OpenAsync();
 
             string query = @"
-                UPDATE etiket  
-                SET urunIsim = @urunIsim, urunFiyat = @urunFiyat
-                WHERE urunBarkod = @urunBarkod";
+            UPDATE etiket  
+            SET urunIsim = @urunIsim, urunFiyat = @urunFiyat, urunIndirimli = @urunIndirim
+            WHERE urunBarkod = @urunBarkod";
 
             using var command = new MySqlCommand(query, connection);
             command.Parameters.AddWithValue("@urunBarkod", product.UrunBarkod);
             command.Parameters.AddWithValue("@urunIsim", product.UrunIsim);
             command.Parameters.AddWithValue("@urunFiyat", product.UrunFiyat);
+            command.Parameters.AddWithValue("@urunIndirim", product.UrunIndirim);
 
             int rowsAffected = await command.ExecuteNonQueryAsync();
 
             if (rowsAffected > 0)
             {
-                _logger.LogInformation("Ürün güncellendi: {urunBarkod}", product.UrunBarkod);
+                _logger.LogInformation("ÃœrÃ¼n gÃ¼ncellendi Barkod numarasÄ±: {urunBarkod}", product.UrunBarkod);
             }
             else
             {
-                _logger.LogWarning("Ürün güncellenemedi, eþleþen urunBarkod bulunamadý: {urunBarkod}", product.UrunBarkod);
+                _logger.LogWarning("ÃœrÃ¼n gÃ¼ncellenemedi, eÅŸleÅŸen Ã¼rÃ¼n barkodu bulunamadÄ±: {urunBarkod}", product.UrunBarkod);
             }
         }
 
@@ -131,7 +132,7 @@ namespace urunservis
             }
             catch (HttpRequestException e)
             {
-                _logger.LogError($"Request failed: {e.Message}");
+                _logger.LogError($"Talep baÅŸarÄ±sÄ±z: {e.Message}");
                 throw;
             }
         }
@@ -146,6 +147,9 @@ namespace urunservis
 
             [JsonPropertyName("urunFiyat")]
             public decimal UrunFiyat { get; set; }
+
+            [JsonPropertyName("urunIndirim")]
+            public decimal UrunIndirim { get; set; }
         }
     }
 }
