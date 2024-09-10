@@ -5,9 +5,12 @@ CREATE TABLE `etiket` (
   `urunBarkod` varchar(45) DEFAULT NULL,
   `urunIsim` varchar(45) DEFAULT NULL,
   `urunFiyat` decimal(18,2) DEFAULT NULL,
+  `etiketIP` varchar(45) NOT NULL,
+  `etiketAktif` varchar(45) DEFAULT NULL,
+  `urunIndirimMiktar` decimal(18,2) DEFAULT NULL,
+  `urunIndirimli` decimal(18,2) DEFAULT NULL,
   PRIMARY KEY (`etiketID`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 örnek olarak api çalışması :
 
 Rest api outputu :
